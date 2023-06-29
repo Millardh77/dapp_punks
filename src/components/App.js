@@ -48,8 +48,10 @@ function App() {
     setAccount(account)
 
     // Fetch Countdown
-    const allowMintingOn = await nft.allowMintingOn()
+    let allowMintingOn = await nft.allowMintingOn()
     setRevealTime(allowMintingOn.toString() + '000')
+
+    console.log("Allowmintingon", Number(allowMintingOn))
 
     // Fetch maxSupply
     setMaxSupply(await nft.maxSupply())

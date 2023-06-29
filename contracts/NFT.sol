@@ -11,38 +11,63 @@ contract NFT is ERC721Enumerable, Ownable {
     string public baseExtension = ".json";
     uint256 public cost;
     uint256 public maxSupply;
+    uint256 public maxMintAmount;
     uint256 public allowMintingOn;
+    bool public mintingPaused = false;
+    uint256 public whiteListCount = 0;
+    mapping(uint256 => _Whitelist) public whiteLists;
+    mapping(address => uint256) public whiteListed;
 
     event Mint(uint256 amount, address minter);
     event Withdraw(uint256 amount, address owner);
+
+    struct _Whitelist {
+        // Attributes of an whitelist
+        uint256 id; // Unique identifier for whitelisted user
+        address user; // User added to whitelist
+    }
+
+    event AddToWhitelist(
+        uint256 id,
+        address user
+    );
 
     constructor(
         string memory _name, 
         string memory _symbol,
         uint256 _cost,
         uint256 _maxSupply,
+        uint256 _maxMintAmount,
         uint256 _allowMintingOn,
         string memory _baseURI
         ) ERC721(_name, _symbol) {
             cost = _cost;
             maxSupply = _maxSupply;
+            maxMintAmount = _maxMintAmount;
             allowMintingOn = _allowMintingOn;
             baseURI = _baseURI;
     }
 
     function mint(uint256 _mintAmount) public payable {
         // Only allow minting after specified time
-        require(block.timestamp >= allowMintingOn);
+        require(block.timestamp >= allowMintingOn, "not time to mint yet");
+        // Make sure minting is not paused
+        require(mintingPaused == false, "minting is paused");
+        require(whiteListCount > 0);
+        require(whiteListed[msg.sender] > 0);
+
+        // Cannot mint more than the max mint amount
+        require(_mintAmount <= maxMintAmount, "minting amount is greater than maximum allowed");
         // Must mint at least 1 token
-        require(_mintAmount> 0);
+        require(_mintAmount> 0, "minting amount is not > 0");
         // Require enough payment
-        require(msg.value >= cost * _mintAmount);
+        require(msg.value >= cost * _mintAmount, "payment is not enough");
 
         // Create a token
         uint256 supply = totalSupply();
 
         // Do not let them mint more tokens than available
-        require(supply + _mintAmount <= maxSupply);
+        require(supply + _mintAmount <= maxSupply, "token amount greater than supply");
 
         // Create tokens
         for(uint256 i = 1; i <= _mintAmount; i++) {
@@ -84,9 +109,26 @@ contract NFT is ERC721Enumerable, Ownable {
 
         emit Withdraw(balance, msg.sender);
     }
-
-        function setCost(uint256 _newCost) public onlyOwner {
+    
+    function setCost(uint256 _newCost) public onlyOwner {
         cost = _newCost;
     }
 
+    function pauseMinting(bool _mintingPaused) public onlyOwner {
+        mintingPaused = _mintingPaused;
+    }
+    function addToWhiteList( address _whiteListAddress) public onlyOwner {
+        whiteListCount ++;
+        // Add address to White List
+        whiteLists[whiteListCount - 1] = _Whitelist(
+            whiteListCount,
+            _whiteListAddress
+        );
+        whiteListed[_whiteListAddress] = whiteListCount;
+        // Emit event
+        emit AddToWhitelist(
+            whiteListCount,
+            _whiteListAddress
+        );
+    }
 }

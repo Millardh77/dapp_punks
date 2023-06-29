@@ -11,7 +11,8 @@ async function main() {
   const SYMBOL = 'DP'
   const COST = ethers.utils.parseUnits('10', 'ether')
   const MAX_SUPPLY = 25
-  const NFT_MINT_DATE = (Date.now() + 60000).toString().slice(0, 10)
+  const MINUTES_TO_ADD = 60000 * 30  // 30 minutes
+  const NFT_MINT_DATE = (new Date().getTime() + (MINUTES_TO_ADD)).toString().slice(0, 10);
   const IPFS_METADATA_URI = 'ipfs://QmQ2jnDYecFhrf3asEWjyjZRX1pZSsNWG3qHzmNDvXa9qg/'
 
   // Deploy NFT
@@ -19,6 +20,10 @@ async function main() {
   let nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, NFT_MINT_DATE, IPFS_METADATA_URI)
 
   await nft.deployed()
+  let allowMintingOn = await nft.allowMintingOn();
+  allowMintingOn = Number(allowMintingOn);
+
+  console.log(`NFT Mint Time: ${allowMintingOn}\n`)
   console.log(`NFT deployed to: ${nft.address}\n`)
 }
 

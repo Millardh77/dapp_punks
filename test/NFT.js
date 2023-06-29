@@ -11,25 +11,33 @@ describe('Token', () => {
   const NAME = 'Dapp Punks'
   const SYMBOL = 'DP'
   const COST = ether(10)
+  const COST20 = ether(20)
   const MAX_SUPPLY = 25
+  const MAX_MINT_AMOUNT = 5
   const BASE_URI = 'ipfs://QmQ2jnDYecFhrf3asEWjyjZRX1pZSsNWG3qHzmNDvXa9qg/'
+  const MINUTES_TO_ADD = 60000 * 30  // 10 minutes
+  const ALLOW_MINTING_ON = (new Date().getTime() + (MINUTES_TO_ADD)).toString().slice(0, 10);
+
+
 
   let nft,
       deployer,
-      minter
+      minter, user2,
+      accounts
 
   beforeEach(async () => {
-    let accounts = await ethers.getSigners()
+    accounts = await ethers.getSigners()
     deployer = accounts[0]
     minter = accounts[1]
+    user2 = accounts[2]
   })
 
   describe('Deployment', () => {
-    const ALLOW_MINTING_ON = (Date.now() + 12000).toString().slice(0,10) // 2 minutes from now
+    //const ALLOW_MINTING_ON = (Date.now().getTime() + 12000).toString().slice(0,10) // 2 minutes from now
 
     beforeEach(async () => {
       const NFT = await ethers.getContractFactory('NFT')
-      nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, ALLOW_MINTING_ON, BASE_URI)
+      nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT_AMOUNT, ALLOW_MINTING_ON, BASE_URI)
     })
 
     it('has correct name', async () => {
@@ -69,8 +77,10 @@ describe('Token', () => {
 
       beforeEach(async () => {
         const NFT = await ethers.getContractFactory('NFT')
-        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, ALLOW_MINTING_ON, BASE_URI)
-
+        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT_AMOUNT, ALLOW_MINTING_ON, BASE_URI)
+        // Add accounts to white list
+        transaction = await nft.connect(deployer).addToWhiteList(accounts[0].address)
+        transaction = await nft.connect(deployer).addToWhiteList(accounts[1].address)
         transaction = await nft.connect(minter).mint(1, { value: COST })
         result = await transaction.wait()
       })
@@ -108,38 +118,79 @@ describe('Token', () => {
       it('rejects insufficient payment', async () => {
         const ALLOW_MINTING_ON = Date.now().toString().slice(0,10) // Now
         const NFT = await ethers.getContractFactory('NFT')
-        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, ALLOW_MINTING_ON, BASE_URI)
+        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT_AMOUNT, ALLOW_MINTING_ON, BASE_URI)
 
+        // Add accounts to white list
+        transaction = await nft.connect(deployer).addToWhiteList(accounts[0].address)
+        transaction = await nft.connect(deployer).addToWhiteList(accounts[1].address)
         await expect(nft.connect(minter).mint(1, { value: ether(1) })).to.be.reverted
         result = await transaction.wait()
+      })
+      it('requires minting not be paused', async () => {
+        const ALLOW_MINTING_ON = Date.now().toString().slice(0,10) // Now
+        const NFT = await ethers.getContractFactory('NFT')
+        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT_AMOUNT, ALLOW_MINTING_ON, BASE_URI)
+
+        // Add accounts to white list
+        transaction = await nft.connect(deployer).addToWhiteList(accounts[0].address)
+        transaction = await nft.connect(deployer).addToWhiteList(accounts[1].address)
+        await nft.connect(deployer).pauseMinting(true)
+        result = await transaction.wait()
+        await expect(nft.connect(minter).mint(1, { value:COST })).to.be.reverted
+        //console.log("minting paused?", await nft.mintingPaused())
       })
       it('requires at least 1 NFT to be minted', async () => {
         const ALLOW_MINTING_ON = Date.now().toString().slice(0,10) // Now
         const NFT = await ethers.getContractFactory('NFT')
-        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, ALLOW_MINTING_ON, BASE_URI)
+        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT_AMOUNT, ALLOW_MINTING_ON, BASE_URI)
 
-        await expect(nft.connect(minter).mint(0, { value: ether(1) })).to.be.reverted
+        // Add accounts to white list
+        transaction = await nft.connect(deployer).addToWhiteList(accounts[0].address)
+        transaction = await nft.connect(deployer).addToWhiteList(accounts[1].address)
+        await expect(nft.connect(minter).mint(0, { value:COST })).to.be.reverted
         result = await transaction.wait()
       })
       it('rejects minting before allowed time', async () => {
         const ALLOW_MINTING_ON = new Date('May 26, 2030 18:00:00').getTime().toString().slice(0,10) // Now
         const NFT = await ethers.getContractFactory('NFT')
-        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, ALLOW_MINTING_ON, BASE_URI)
+        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT_AMOUNT, ALLOW_MINTING_ON, BASE_URI)
 
+        // Add accounts to white list
+        transaction = await nft.connect(deployer).addToWhiteList(accounts[0].address)
+        transaction = await nft.connect(deployer).addToWhiteList(accounts[1].address)
         await expect(nft.connect(minter).mint(1, { value: COST })).to.be.reverted
         result = await transaction.wait()
       })
       it('does not allow more NFTs to be minted than max amount', async () => {
         const ALLOW_MINTING_ON = Date.now().toString().slice(0, 10) // Now
         const NFT = await ethers.getContractFactory('NFT')
-        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, ALLOW_MINTING_ON, BASE_URI)
-
-        await expect(nft.connect(minter).mint(100, { value: COST })).to.be.reverted
+        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT_AMOUNT, ALLOW_MINTING_ON, BASE_URI)
+        // Add accounts to white list
+        transaction = await nft.connect(deployer).addToWhiteList(accounts[0].address)
+        transaction = await nft.connect(deployer).addToWhiteList(accounts[1].address)
+        const mintAmount = 6
+        const tranCost = ether(10 * mintAmount)
+        // console.log("Max amount:", await nft.maxMintAmount())
+        // console.log("transaction cost", tranCost)
+        await expect(nft.connect(minter).mint(mintAmount, { value: tranCost })).to.be.reverted
       })
+      it('rejects not whitelisted', async () => {
+        const ALLOW_MINTING_ON = Date.now().toString().slice(0, 10) // Now
+        const NFT = await ethers.getContractFactory('NFT')
+        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT_AMOUNT, ALLOW_MINTING_ON, BASE_URI)
+        // Add accounts to white list
+        transaction = await nft.connect(deployer).addToWhiteList(accounts[0].address)
+        transaction = await nft.connect(deployer).addToWhiteList(accounts[1].address)
+        await expect(nft.connect(user2).mint(1, { value: COST })).to.be.reverted
+      })
+
       it('does not return URIs for invalid tokens', async () => {
         const ALLOW_MINTING_ON = Date.now().toString().slice(0, 10) // Now
         const NFT = await ethers.getContractFactory('NFT')
-        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, ALLOW_MINTING_ON, BASE_URI)
+        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT_AMOUNT, ALLOW_MINTING_ON, BASE_URI)
+        // Add accounts to white list
+        transaction = await nft.connect(deployer).addToWhiteList(accounts[0].address)
+        transaction = await nft.connect(deployer).addToWhiteList(accounts[1].address)
         nft.connect(minter).mint(1, { value: COST })
 
         await expect(nft.tokenURI('99')).to.be.reverted
@@ -155,8 +206,11 @@ describe('Token', () => {
 
     beforeEach(async () => {
       const NFT = await ethers.getContractFactory('NFT')
-      nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, ALLOW_MINTING_ON, BASE_URI)
+      nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT_AMOUNT, ALLOW_MINTING_ON, BASE_URI)
 
+        // Add accounts to white list
+        transaction = await nft.connect(deployer).addToWhiteList(accounts[0].address)
+        transaction = await nft.connect(deployer).addToWhiteList(accounts[1].address)
       // Mint 3 nfts
       transaction = await nft.connect(minter).mint(3, { value: ether(30) })
       result = await transaction.wait()
@@ -173,14 +227,18 @@ describe('Token', () => {
     })
   })
   describe('Minting', () => {
+    let transaction
     describe('Success', async () => {
-      let transaction, result, balanceBefore
+      let result, balanceBefore
 
       const ALLOW_MINTING_ON = Date.now().toString().slice(0, 10) // Now
 
       beforeEach(async () => {
         const NFT = await ethers.getContractFactory('NFT')
-        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, ALLOW_MINTING_ON, BASE_URI)
+        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT_AMOUNT, ALLOW_MINTING_ON, BASE_URI)
+        // Add accounts to white list
+        transaction = await nft.connect(deployer).addToWhiteList(accounts[0].address)
+        transaction = await nft.connect(deployer).addToWhiteList(accounts[1].address)
 
         transaction = await nft.connect(minter).mint(1, { value: COST })
         result = await transaction.wait()
@@ -209,7 +267,10 @@ describe('Token', () => {
       it('prevents non-owner from withdrawing', async () => {
         const ALLOW_MINTING_ON = Date.now().toString().slice(0, 10) // Now
         const NFT = await ethers.getContractFactory('NFT')
-        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, ALLOW_MINTING_ON, BASE_URI)
+        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT_AMOUNT, ALLOW_MINTING_ON, BASE_URI)
+        // Add accounts to white list
+        transaction = await nft.connect(deployer).addToWhiteList(accounts[0].address)
+        transaction = await nft.connect(deployer).addToWhiteList(accounts[1].address)
         nft.connect(minter).mint(1, { value: COST })
 
         await expect(nft.connect(minter).withdraw()).to.be.reverted
