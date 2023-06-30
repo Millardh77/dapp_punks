@@ -65,7 +65,7 @@ describe('Token', () => {
     })
 
     it('returns the owner', async () => {
-        console.log(`Owner: ${await nft.owner()}\n`)
+        //console.log(`Owner: ${await nft.owner()}\n`)
         expect(await nft.owner()).to.equal(deployer.address)
     })
   })

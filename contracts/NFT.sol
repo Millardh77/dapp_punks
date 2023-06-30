@@ -15,20 +15,12 @@ contract NFT is ERC721Enumerable, Ownable {
     uint256 public allowMintingOn;
     bool public mintingPaused = false;
     uint256 public whiteListCount = 0;
-    mapping(uint256 => _Whitelist) public whiteLists;
-    mapping(address => uint256) public whiteListed;
+    mapping(address => bool) public whiteListed;
 
     event Mint(uint256 amount, address minter);
     event Withdraw(uint256 amount, address owner);
 
-    struct _Whitelist {
-        // Attributes of an whitelist
-        uint256 id; // Unique identifier for whitelisted user
-        address user; // User added to whitelist
-    }
-
     event AddToWhitelist(
-        uint256 id,
         address user
     );
 
@@ -54,7 +46,7 @@ contract NFT is ERC721Enumerable, Ownable {
         // Make sure minting is not paused
         require(mintingPaused == false, "minting is paused");
         require(whiteListCount > 0);
-        require(whiteListed[msg.sender] > 0);
+        require(whiteListed[msg.sender]);
 
         // Cannot mint more than the max mint amount
         require(_mintAmount <= maxMintAmount, "minting amount is greater than maximum allowed");
@@ -119,15 +111,9 @@ contract NFT is ERC721Enumerable, Ownable {
     }
     function addToWhiteList( address _whiteListAddress) public onlyOwner {
         whiteListCount ++;
-        // Add address to White List
-        whiteLists[whiteListCount - 1] = _Whitelist(
-            whiteListCount,
-            _whiteListAddress
-        );
-        whiteListed[_whiteListAddress] = whiteListCount;
+        whiteListed[_whiteListAddress] = true;
         // Emit event
         emit AddToWhitelist(
-            whiteListCount,
             _whiteListAddress
         );
     }

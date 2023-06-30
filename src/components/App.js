@@ -31,6 +31,8 @@ function App() {
   const [balance, setBalance] = useState(0)
 
   const [isOwner, setIsOwner] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
+  const [isWhitelisted, setIsWhitelisted] = useState(false)
 
   const [isLoading, setIsLoading] = useState(true)
 
@@ -48,12 +50,13 @@ function App() {
     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
     const account = ethers.utils.getAddress(accounts[0])
     setAccount(account)
+    console.log(`Account: ${account}\n`)
 
     // Fetch Countdown
     let allowMintingOn = await nft.allowMintingOn()
     setRevealTime(allowMintingOn.toString() + '000')
 
-    console.log("Allowmintingon", Number(allowMintingOn))
+    console.log("Allow minting on:", Number(allowMintingOn))
 
     // Fetch maxSupply
     setMaxSupply(await nft.maxSupply())
@@ -68,13 +71,24 @@ function App() {
     setBalance(await nft.balanceOf(account))
 
     // Get Owner
-    //accounts = await ethers.getSigners()
-    let deployer = accounts[0]
     const owner = await nft.owner()
     const isOwner = owner === account ? true : false;
     setIsOwner(isOwner)
-    console.log(`Owner: ${owner}\n`)
+    //console.log(`Owner: ${owner}\n`)
     console.log(`Is Owner: ${isOwner}\n`)
+
+    // Get white list
+    const whiteListed = Boolean(await nft.whiteListed(account))
+    const isWhitelisted = whiteListed === true ? true : false
+    //const tryWhitelisted = whiteListed ?? false
+
+    setIsWhitelisted(isWhitelisted)
+    console.log(`Is whiteListed: ${isWhitelisted}\n`)
+
+    // Get whether minting is paused
+    const isPaused = await nft.mintingPaused()
+    setIsPaused(isPaused)
+    console.log(`Is Paused: ${isPaused}\n`)
 
     setIsLoading(false)
   }
