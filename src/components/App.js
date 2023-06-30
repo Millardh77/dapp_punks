@@ -30,6 +30,8 @@ function App() {
   const [cost, setCost] = useState(0)
   const [balance, setBalance] = useState(0)
 
+  const [isOwner, setIsOwner] = useState(false)
+
   const [isLoading, setIsLoading] = useState(true)
 
   const loadBlockchainData = async () => {
@@ -64,6 +66,15 @@ function App() {
 
     // Fetch account balance
     setBalance(await nft.balanceOf(account))
+
+    // Get Owner
+    //accounts = await ethers.getSigners()
+    let deployer = accounts[0]
+    const owner = await nft.owner()
+    const isOwner = owner === account ? true : false;
+    setIsOwner(isOwner)
+    console.log(`Owner: ${owner}\n`)
+    console.log(`Is Owner: ${isOwner}\n`)
 
     setIsLoading(false)
   }
