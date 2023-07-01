@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Container, Row, Col } from 'react-bootstrap'
+import Button from 'react-bootstrap/Button';
 import Countdown from 'react-countdown'
 import { ethers } from 'ethers'
 
@@ -35,6 +36,7 @@ function App() {
   const [isWhitelisted, setIsWhitelisted] = useState(false)
 
   const [isLoading, setIsLoading] = useState(true)
+  const [active, setActive] = useState(true);
 
   const loadBlockchainData = async () => {
     // Initiate provider
@@ -85,12 +87,35 @@ function App() {
     setIsWhitelisted(isWhitelisted)
     console.log(`Is whiteListed: ${isWhitelisted}\n`)
 
-    // Get whether minting is paused
-    const isPaused = await nft.mintingPaused()
-    setIsPaused(isPaused)
-    console.log(`Is Paused: ${isPaused}\n`)
+     // Get whether minting is paused
+     const isPaused = await nft.mintingPaused()
+     setIsPaused(isPaused)
+     console.log(`Is Paused: ${isPaused}\n`)
+   
+
 
     setIsLoading(false)
+  }
+  const pauseHandler = async (e) => {
+    //e.preventDefault()
+        // Get whether minting is paused
+        const pauseMinting = !isPaused ? true : false
+        console.log(`Setting Paused: ${pauseMinting}\n`)
+
+    
+    setActive(!active);
+     try {
+       const signer = await provider.getSigner()
+        const transaction = await nft.connect(signer).pauseMinting(pauseMinting)
+        await transaction.wait()
+
+        const isPaused = await nft.mintingPaused()
+        setIsPaused(isPaused)
+   
+    } catch {
+      window.alert('User rejected or transaction reverted')
+    }
+
   }
 
   useEffect(() => {
@@ -128,6 +153,12 @@ function App() {
               <div className='my-4 text-center'>
                 <Countdown date={parseInt(revealTime)} className='h2' />
               </div>
+              <div className='my-4 text-center'>
+                {isOwner &&
+                (<Button variant="primary" type="submit" style={{ width: '100%' }} onClick={pauseHandler}>
+                  { isPaused ? "UnPause" : "Pause"}
+                </Button>)}
+              </div>
 
               <Data
                 maxSupply={maxSupply}
@@ -141,6 +172,7 @@ function App() {
                 nft={nft}
                 cost={cost}
                 setIsLoading={setIsLoading}
+                isPaused={isPaused}
               />
 
             </Col>
