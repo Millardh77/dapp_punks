@@ -15,6 +15,10 @@ describe('Token', () => {
   const MAX_SUPPLY = 25
   const MAX_MINT_AMOUNT = 5
   const BASE_URI = 'ipfs://QmQ2jnDYecFhrf3asEWjyjZRX1pZSsNWG3qHzmNDvXa9qg/'
+  // Example of where the json and image are located for 1st nft
+  // https://ipfs.io/ipfs/QmQ2jnDYecFhrf3asEWjyjZRX1pZSsNWG3qHzmNDvXa9qg/1.json  -- json
+  // https://ipfs.io/ipfs/QmQPEMsfd1tJnqYPbnTQCjoa8vczfsV1FmqZWgRdNQ7z3g/1.png   -- image
+
   const MINUTES_TO_ADD = 60000 * 30  // 10 minutes
   const ALLOW_MINTING_ON = (new Date().getTime() + (MINUTES_TO_ADD)).toString().slice(0, 10);
 

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { Container, Row, Col } from 'react-bootstrap'
-import Button from 'react-bootstrap/Button';
 import Countdown from 'react-countdown'
 import { ethers } from 'ethers'
 
@@ -11,6 +10,7 @@ import preview from '../preview.png';
 import Navigation from './Navigation';
 import Data from './Data';
 import Mint from './Mint';
+import Owner from './Owner';
 import Loading from './Loading';
 
 // ABIs: Import your contract ABIs here
@@ -30,13 +30,16 @@ function App() {
   const [totalSupply, setTotalSupply] = useState(0)
   const [cost, setCost] = useState(0)
   const [balance, setBalance] = useState(0)
+  const [mintMessage, setMintMessage] = useState(null)
+  const [lastTokenID, setLastTokenID] = useState(0)
 
   const [isOwner, setIsOwner] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
   const [isWhitelisted, setIsWhitelisted] = useState(false)
 
+  const [nfts, setNFTs] = useState([])
+
   const [isLoading, setIsLoading] = useState(true)
-  const [active, setActive] = useState(true);
 
   const loadBlockchainData = async () => {
     // Initiate provider
@@ -87,35 +90,40 @@ function App() {
     setIsWhitelisted(isWhitelisted)
     console.log(`Is whiteListed: ${isWhitelisted}\n`)
 
+    const mintMessage = whiteListed === true ? "Minting is Paused" : "Unauthorized to Mint"
+    setMintMessage(mintMessage)
      // Get whether minting is paused
      const isPaused = await nft.mintingPaused()
      setIsPaused(isPaused)
      console.log(`Is Paused: ${isPaused}\n`)
+
+     // Get all of the account's NFTs
+     const tokenIds = await nft.walletOfOwner(account)
+     const lastTokenID = Number(tokenIds.length)
+     setLastTokenID(lastTokenID)
+     console.log(`tokenIds: ${tokenIds}\n`)
+     console.log(`Last TokenId: ${lastTokenID}\n`)
+
+     const nfts = []
+     const ipfsURI = "https://ipfs.io/ipfs/QmQ2jnDYecFhrf3asEWjyjZRX1pZSsNWG3qHzmNDvXa9qg/"
+     for (var i = 1; i <= lastTokenID; i++) {
+      let str = await nft.tokenURI(i)
+      let newstr = str.substr(7, str.length - 1) 
+      let uri = `https://ipfs.io/ipfs/${newstr}`
+      console.log(`uri: ${uri}\n`)
+      //uri = `https://ipfs.io/${uri}`
+      const response = await fetch(uri)
+      const metadata = await response.json()
+      nfts.push(metadata)
+    }
+
+    setNFTs(nfts)
+
+
    
 
 
     setIsLoading(false)
-  }
-  const pauseHandler = async (e) => {
-    //e.preventDefault()
-        // Get whether minting is paused
-        const pauseMinting = !isPaused ? true : false
-        console.log(`Setting Paused: ${pauseMinting}\n`)
-
-    
-    setActive(!active);
-     try {
-       const signer = await provider.getSigner()
-        const transaction = await nft.connect(signer).pauseMinting(pauseMinting)
-        await transaction.wait()
-
-        const isPaused = await nft.mintingPaused()
-        setIsPaused(isPaused)
-   
-    } catch {
-      window.alert('User rejected or transaction reverted')
-    }
-
   }
 
   useEffect(() => {
@@ -136,28 +144,54 @@ function App() {
         <>
           <Row>
           <Col>
-              {balance > 0 ? (
+              {lastTokenID > 0 ? (
+                <>
                 <div className='text-center'>
                   <img
-                    src={`https://gateway.pinata.cloud/ipfs/QmQPEMsfd1tJnqYPbnTQCjoa8vczfsV1FmqZWgRdNQ7z3g/${balance.toString()}.png`}
+                    src={`https://gateway.pinata.cloud/ipfs/QmQPEMsfd1tJnqYPbnTQCjoa8vczfsV1FmqZWgRdNQ7z3g/${lastTokenID}.png`}
                     alt="Open Punk"
                     width="400px"
                     height="400px"
                   />
                 </div>
+                 <div className='cards'>
+                 {nfts.map((nft, index) => (
+                              <div className='card' key={index}>
+                              <div className='card__image'>
+                                <img src={nft.image} alt="Home" />
+                              </div>
+                              <div className='card__info'>
+                                <h4>{nft.attributes[0].value} ETH</h4>
+                                <p>
+                                  <strong>{nft.attributes[2].value}</strong> bds |
+                                  <strong>{nft.attributes[3].value}</strong> ba |
+                                  <strong>{nft.attributes[4].value}</strong> sqft
+                                </p>
+                                <p>{nft.name}</p>
+                              </div>
+                            </div>
+                
+                 ))}
+                  </div>
+                  </>
+
               ) : (
                 <img src={preview} alt="" />
               )}
             </Col>
             <Col>
+              {isOwner &&
+                (
+                  <Owner 
+                    provider={provider}
+                    nft={nft}
+                    setIsLoading={setIsLoading}
+                    setIsPaused={setIsPaused}
+                  />
+                )
+              }
               <div className='my-4 text-center'>
                 <Countdown date={parseInt(revealTime)} className='h2' />
-              </div>
-              <div className='my-4 text-center'>
-                {isOwner &&
-                (<Button variant="primary" type="submit" style={{ width: '100%' }} onClick={pauseHandler}>
-                  { isPaused ? "UnPause" : "Pause"}
-                </Button>)}
               </div>
 
               <Data
@@ -166,15 +200,17 @@ function App() {
                 cost={cost}
                 balance={balance}
               />
-
-              <Mint
-                provider={provider}
-                nft={nft}
-                cost={cost}
-                setIsLoading={setIsLoading}
-                isPaused={isPaused}
-              />
-
+              {isPaused || !isWhitelisted ? (
+                  <h2 className='my-4 text-center'>{mintMessage}</h2>
+              ) : (
+                <Mint
+                  provider={provider}
+                  nft={nft}
+                  cost={cost}
+                  setIsLoading={setIsLoading}
+                  isPaused={isPaused}
+                />
+              )}
             </Col>
           </Row>
         </>
