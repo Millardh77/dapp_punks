@@ -13,7 +13,7 @@ useEffect(() => {
   async function fetchData() {
     // Get whether minting is paused
     const isPaused = await nft.mintingPaused()
-    console.log(`Is Paused: ${isPaused}\n`)
+    // console.log(`Is Paused: ${isPaused}\n`)
  
     setIsNowPaused(isPaused)
     // handleVote();
@@ -44,10 +44,10 @@ useEffect(() => {
         e.preventDefault()
             // Get whether minting is paused
             const isPaused = isNowPaused
-            console.log(`Is Paused: ${isPaused}\n`)
+            // console.log(`Is Paused: ${isPaused}\n`)
 
             const pauseMinting = !isPaused ? true : false
-            console.log(`Setting Paused: ${pauseMinting}\n`)
+            // console.log(`Setting Paused: ${pauseMinting}\n`)
     
         
          try {

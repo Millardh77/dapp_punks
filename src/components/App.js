@@ -55,13 +55,13 @@ function App() {
     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
     const account = ethers.utils.getAddress(accounts[0])
     setAccount(account)
-    console.log(`Account: ${account}\n`)
+    //console.log(`Account: ${account}\n`)
 
     // Fetch Countdown
     let allowMintingOn = await nft.allowMintingOn()
     setRevealTime(allowMintingOn.toString() + '000')
 
-    console.log("Allow minting on:", Number(allowMintingOn))
+    //console.log("Allow minting on:", Number(allowMintingOn))
 
     // Fetch maxSupply
     setMaxSupply(await nft.maxSupply())
@@ -79,38 +79,35 @@ function App() {
     const owner = await nft.owner()
     const isOwner = owner === account ? true : false;
     setIsOwner(isOwner)
-    //console.log(`Owner: ${owner}\n`)
-    console.log(`Is Owner: ${isOwner}\n`)
+    //console.log(`Is Owner: ${isOwner}\n`)
 
     // Get white list
     const whiteListed = Boolean(await nft.whiteListed(account))
     const isWhitelisted = whiteListed === true ? true : false
-    //const tryWhitelisted = whiteListed ?? false
 
     setIsWhitelisted(isWhitelisted)
-    console.log(`Is whiteListed: ${isWhitelisted}\n`)
+    //console.log(`Is whiteListed: ${isWhitelisted}\n`)
 
     const mintMessage = whiteListed === true ? "Minting is Paused" : "Unauthorized to Mint"
     setMintMessage(mintMessage)
      // Get whether minting is paused
      const isPaused = await nft.mintingPaused()
      setIsPaused(isPaused)
-     console.log(`Is Paused: ${isPaused}\n`)
+     //console.log(`Is Paused: ${isPaused}\n`)
 
      // Get all of the account's NFTs
      const tokenIds = await nft.walletOfOwner(account)
      const lastTokenID = Number(tokenIds.length)
      setLastTokenID(lastTokenID)
-     console.log(`tokenIds: ${tokenIds}\n`)
-     console.log(`Last TokenId: ${lastTokenID}\n`)
+     //console.log(`tokenIds: ${tokenIds}\n`)
+     //console.log(`Last TokenId: ${lastTokenID}\n`)
 
      const nfts = []
-     const ipfsURI = "https://ipfs.io/ipfs/QmQ2jnDYecFhrf3asEWjyjZRX1pZSsNWG3qHzmNDvXa9qg/"
      for (var i = 1; i <= lastTokenID; i++) {
       let str = await nft.tokenURI(i)
       let newstr = str.substr(7, str.length - 1) 
       let uri = `https://ipfs.io/ipfs/${newstr}`
-      console.log(`uri: ${uri}\n`)
+      //console.log(`uri: ${uri}\n`)
       //uri = `https://ipfs.io/${uri}`
       const response = await fetch(uri)
       const metadata = await response.json()
@@ -154,20 +151,16 @@ function App() {
                     height="400px"
                   />
                 </div>
-                 <div className='cards'>
+                 <div className='cards my-2'>
                  {nfts.map((nft, index) => (
-                              <div className='card' key={index}>
-                              <div className='card__image'>
-                                <img src={nft.image} alt="Home" />
-                              </div>
+                              <div className='card mb-2' key={index}>
+                              {/* <div className='card__image'>
+                                <img src={nft.image} alt="NFT" />
+                              </div> */}
                               <div className='card__info'>
-                                <h4>{nft.attributes[0].value} ETH</h4>
-                                <p>
-                                  <strong>{nft.attributes[2].value}</strong> bds |
-                                  <strong>{nft.attributes[3].value}</strong> ba |
-                                  <strong>{nft.attributes[4].value}</strong> sqft
-                                </p>
-                                <p>{nft.name}</p>
+                                <h4>Name: {nft.name}</h4>
+                                <p>ID: {nft.id}</p>
+                                <p>Description: {nft.description}</p>
                               </div>
                             </div>
                 
