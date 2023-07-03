@@ -12,6 +12,7 @@ import Data from './Data';
 import Mint from './Mint';
 import Owner from './Owner';
 import Loading from './Loading';
+//import '../App.css'
 
 // ABIs: Import your contract ABIs here
 import NFT_ABI from '../abis/NFT.json'
@@ -58,10 +59,16 @@ function App() {
     //console.log(`Account: ${account}\n`)
 
     // Fetch Countdown
-    let allowMintingOn = await nft.allowMintingOn()
+    // For Testing
+    // const MINUTES_TO_ADD = 60000 * 1  // 1 minute
+    // const NFT_MINT_DATE = (new Date().getTime() + (MINUTES_TO_ADD)).toString().slice(0, 10);
+    // let allowMintingOn = NFT_MINT_DATE
+    // For Testing
+  
+    let allowMintingOn = await nft.allowMintingOn() // Uncomment when in production
     setRevealTime(allowMintingOn.toString() + '000')
 
-    //console.log("Allow minting on:", Number(allowMintingOn))
+    console.log("Allow minting on:", Number(allowMintingOn))
 
     // Fetch maxSupply
     setMaxSupply(await nft.maxSupply())
@@ -74,6 +81,7 @@ function App() {
 
     // Fetch account balance
     setBalance(await nft.balanceOf(account))
+
 
     // Get Owner
     const owner = await nft.owner()
@@ -128,6 +136,26 @@ function App() {
       loadBlockchainData()
     }
   }, [isLoading]);
+
+  // Random component
+const Completionist = () => <strong>The Mint is Open!</strong>;
+
+// Renderer callback with condition
+const renderer = ({ days, hours, minutes, seconds, completed }) => {
+  if (completed) {
+    // setCountdownComplete(true)
+    // Render a completed state
+    return <Completionist />;
+  } else {
+    // Render a countdown
+    return (
+      <>
+      <strong>Minting starts in: </strong>
+      <strong>{days}:{hours}:{minutes}:{seconds}</strong>
+    </>
+    );
+  }
+};
 
   return(
     <Container>
@@ -184,7 +212,7 @@ function App() {
                 )
               }
               <div className='my-4 text-center'>
-                <Countdown date={parseInt(revealTime)} className='h2' />
+                <Countdown date={parseInt(revealTime)} className='h2' renderer={renderer} />
               </div>
 
               <Data
