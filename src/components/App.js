@@ -145,7 +145,21 @@ const renderer = ({ days, hours, minutes, seconds, completed }) => {
   if (completed) {
     // setCountdownComplete(true)
     // Render a completed state
-    return <Completionist />;
+    return (
+      <>
+    <Completionist />
+    {isPaused || !isWhitelisted ? (
+      <h2 className='my-4 text-center'>{mintMessage}</h2>
+  ) : (
+    <Mint
+      provider={provider}
+      nft={nft}
+      cost={cost}
+      setIsLoading={setIsLoading}
+      isPaused={isPaused}
+    />
+  )}
+  </>)
   } else {
     // Render a countdown
     return (
@@ -211,27 +225,16 @@ const renderer = ({ days, hours, minutes, seconds, completed }) => {
                   />
                 )
               }
-              <div className='my-4 text-center'>
-                <Countdown date={parseInt(revealTime)} className='h2' renderer={renderer} />
-              </div>
-
               <Data
                 maxSupply={maxSupply}
                 totalSupply={totalSupply}
                 cost={cost}
                 balance={balance}
               />
-              {isPaused || !isWhitelisted ? (
-                  <h2 className='my-4 text-center'>{mintMessage}</h2>
-              ) : (
-                <Mint
-                  provider={provider}
-                  nft={nft}
-                  cost={cost}
-                  setIsLoading={setIsLoading}
-                  isPaused={isPaused}
-                />
-              )}
+              <div className='my-4 text-center'>
+                <Countdown date={parseInt(revealTime)} className='h2' renderer={renderer} />
+              </div>
+
             </Col>
           </Row>
         </>

@@ -12,7 +12,7 @@ async function main() {
   const COST = ethers.utils.parseUnits('10', 'ether')
   const MAX_SUPPLY = 25
   const MAX_MINT_AMOUNT = 5
-  const MINUTES_TO_ADD = 60000 * 2  // 2 minutes
+  const MINUTES_TO_ADD = 60000 * 1  // 1 minute
   const NFT_MINT_DATE = (new Date().getTime() + (MINUTES_TO_ADD)).toString().slice(0, 10);
   const IPFS_METADATA_URI = 'ipfs://QmQ2jnDYecFhrf3asEWjyjZRX1pZSsNWG3qHzmNDvXa9qg/'
 
