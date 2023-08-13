@@ -8,11 +8,11 @@ const tokens = (n) => {
 const ether = tokens
 
 describe('Token', () => {
-  const NAME = 'Dapp Punks'
-  const SYMBOL = 'DP'
+  const NAME = 'MCH Media Punks'
+  const SYMBOL = 'MCHPP'
   const COST = ether(10)
   const COST20 = ether(20)
-  const MAX_SUPPLY = 25
+  const MAX_SUPPLY = 2500
   const MAX_MINT_AMOUNT = 5
   const BASE_URI = 'ipfs://QmQ2jnDYecFhrf3asEWjyjZRX1pZSsNWG3qHzmNDvXa9qg/'
   // Example of where the json and image are located for 1st nft

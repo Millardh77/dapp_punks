@@ -12,7 +12,7 @@ import Data from './Data';
 import Mint from './Mint';
 import Owner from './Owner';
 import Loading from './Loading';
-//import '../App.css'
+import '../App.css'
 
 // ABIs: Import your contract ABIs here
 import NFT_ABI from '../abis/NFT.json'
@@ -175,7 +175,7 @@ const renderer = ({ days, hours, minutes, seconds, completed }) => {
     <Container>
       <Navigation account={account} />
 
-      <h1 className='my-4 text-center'>Dapp Punks</h1>
+      <h1 className='my-4 text-center'>MCH Media Punks</h1>
 
       {isLoading ? (
         <Loading />
@@ -193,17 +193,24 @@ const renderer = ({ days, hours, minutes, seconds, completed }) => {
                     height="400px"
                   />
                 </div>
+                <hr />
                  <div className='cards my-2'>
                  {nfts.map((nft, index) => (
-                              <div className='card mb-2' key={index}>
-                              {/* <div className='card__image'>
-                                <img src={nft.image} alt="NFT" />
-                              </div> */}
-                              <div className='card__info'>
+                              <div className='my-2' key={index}>
+                              <div className='my-2'>
+                                <img 
+                                src={`https://gateway.pinata.cloud/ipfs/QmQPEMsfd1tJnqYPbnTQCjoa8vczfsV1FmqZWgRdNQ7z3g/${index+1}.png`} 
+                                alt="NFT" 
+                                width="100px"
+                                height="100px"
+                                />
+                              </div>
+                            <div className='my-2'>
                                 <h4>Name: {nft.name}</h4>
                                 <p>ID: {nft.id}</p>
                                 <p>Description: {nft.description}</p>
                               </div>
+                              <hr />
                             </div>
                 
                  ))}

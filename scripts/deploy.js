@@ -7,10 +7,10 @@
 const hre = require("hardhat");
 
 async function main() {
-  const NAME = 'Dapp Punks'
-  const SYMBOL = 'DP'
+  const NAME = 'MCH Media Punks'
+  const SYMBOL = 'MCHP'
   const COST = ethers.utils.parseUnits('10', 'ether')
-  const MAX_SUPPLY = 25
+  const MAX_SUPPLY = 2500
   const MAX_MINT_AMOUNT = 5
   const MINUTES_TO_ADD = 60000 * 1  // 1 minute
   const NFT_MINT_DATE = (new Date().getTime() + (MINUTES_TO_ADD)).toString().slice(0, 10);
